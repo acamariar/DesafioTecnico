@@ -1,81 +1,28 @@
 import { useEffect } from 'react';
-// Asegúrate de instalar estas librerías en tu terminal:
-// npm install recharts lucide-react
 import {
   PieChart, Pie, Cell, ResponsiveContainer, Tooltip,
-
 } from 'recharts';
 import {
-  Fuel, Package,
-  ArrowUpRight,
-  Activity
+  Package, Activity
 } from 'lucide-react';
 import { useDashboardStore } from './store/useDashboardStore';
-
-
-/**
- * CONFIGURACIÓN TÉCNICA
- * Filtro estricto: El GNC no es considerado combustible.
- */
-const COMBUSTIBLES_IDS = [1031, 18500, 18800, 18900];
-
-
-// Mocks basados en la estructura de los archivos CSV proporcionados
-const ARTICULOS = [
-  { ArtCodigo: 1031, Descripcion: "NAFTA SUPER BIO" },
-  { ArtCodigo: 18500, Descripcion: "NAFTA SUPER" },
-  { ArtCodigo: 18800, Descripcion: "SHELL V-POWER NAFTA" },
-  { ArtCodigo: 18900, Descripcion: "SHELL V-POWER DIESEL" },
-  { ArtCodigo: 1821, Descripcion: "COCA-COLA 500ML" },
-  { ArtCodigo: 1079, Descripcion: "AGUA VILLAVICENCIO" },
-];
-
-const PRECIOS = [
-  { ArtCodigo: 1031, Precio: 1020.50 },
-  { ArtCodigo: 18500, Precio: 1080.00 },
-  { ArtCodigo: 18800, Precio: 1290.40 },
-  { ArtCodigo: 18900, Precio: 1350.20 },
-  { ArtCodigo: 1821, Precio: 890.00 },
-  { ArtCodigo: 1079, Precio: 720.00 },
-];
-
-const VENTAS_RAW = [
-  { ArtCodigo: 1031, Codigo: 3, Unidades2: 1250 },
-  { ArtCodigo: 18800, Codigo: 3, Unidades2: 800 },
-  { ArtCodigo: 1031, Codigo: 31, Unidades2: 2150 },
-  { ArtCodigo: 18500, Codigo: 29, Unidades2: 1420 },
-  { ArtCodigo: 1821, Codigo: 29, Unidades2: 950 },
-  { ArtCodigo: 18900, Codigo: 56, Unidades2: 1600 },
-  { ArtCodigo: 1079, Codigo: 31, Unidades2: 400 },
-  { ArtCodigo: 18800, Codigo: 56, Unidades2: 1100 },
-];
-
-const ESTACIONES = [
-  { Codigo: 3, Nombre: "River" },
-  { Codigo: 29, Nombre: "Cabildo Deheza" },
-  { Codigo: 31, Nombre: "Centenario" },
-  { Codigo: 56, Nombre: "Olivos" },
-];
-
 const App = () => {
 
-  const { rankingEstaciones, fetchEstaciones, isLoadingEstaciones } = useDashboardStore();
+  const { rankingEstaciones, fetchEstaciones } = useDashboardStore();
+  const { rankingCombustibles, fetchTopCombustibles } = useDashboardStore();
   const { rankingFacturacion, isLoadingFacturacion, fetchFacturacion } = useDashboardStore();
   const rankingProductos = useDashboardStore((state) => state.rankingProductos);
   const fetchRanking = useDashboardStore((state) => state.fetchRanking);
   const isLoading = useDashboardStore((state) => state.isLoading);
+
+
   useEffect(() => {
     fetchRanking();
     fetchFacturacion();
     fetchEstaciones();
+    fetchTopCombustibles();
 
-  }, [fetchRanking, fetchFacturacion, fetchEstaciones]);
-
-
-
-
-
-
+  }, [fetchRanking, fetchFacturacion, fetchEstaciones, fetchTopCombustibles]);
 
   return (
     <div className="min-h-screen bg-[#0a0c10] text-slate-200 font-sans overflow-x-hidden selection:bg-cyan-500/30 p-4 md:p-8">
@@ -183,12 +130,15 @@ const App = () => {
                 }))}
                 variant="cyan"
               />
-              {/* <TopListCard
-              title="Líderes Combustibles"
-              subtitle="Exclusivo Combustibles (Sin GNC)"
-              data={ }
-              variant="orange"
-            /> */}
+              <TopListCard
+                title="Top 3 Combustibles"
+                subtitle="Exclusivo Combustibles (Sin GNC)"
+                data={rankingCombustibles.map(est => ({
+                  name: est.nombre,
+                  value: est.facturacion
+                }))}
+                variant="orange"
+              />
             </section>
           </section>
 

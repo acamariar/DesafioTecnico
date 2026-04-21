@@ -1,18 +1,21 @@
 import { create } from 'zustand';
 import type { rankingEstacionFacturacion, RankingFacturacion, RankingProducto } from '../types';
-import { getRankingFacturacion, getRankingProductos, getTopEstacionesFacturacion, loadData } from '../queries/rankingQueries';
+import { getRankingFacturacion, getRankingProductos, getTopEstacionesCombustibles, getTopEstacionesFacturacion, loadData } from '../queries/rankingQueries';
 
 interface DashboardState {
     isLoading: boolean;
     setLoading: (loading: boolean) => void;
     isLoadingFacturacion: boolean;
     isLoadingEstaciones: boolean;
+    isLoadingCombustibles: boolean;
     rankingProductos: RankingProducto[];
     rankingFacturacion: RankingFacturacion[];
     rankingEstaciones: rankingEstacionFacturacion[];
+    rankingCombustibles: rankingEstacionFacturacion[];
     fetchRanking: () => Promise<void>;
     fetchFacturacion: () => Promise<void>;
     fetchEstaciones: () => Promise<void>;
+    fetchTopCombustibles: () => Promise<void>;
 }
 
 export const useDashboardStore = create<DashboardState>((set) => ({
@@ -20,9 +23,12 @@ export const useDashboardStore = create<DashboardState>((set) => ({
     setLoading: (loading) => set({ isLoading: loading }),
     isLoadingFacturacion: false,
     isLoadingEstaciones: false,
+    isLoadingCombustibles: false,
     rankingProductos: [],
     rankingFacturacion: [],
     rankingEstaciones: [],
+    rankingCombustibles: [],
+
     fetchRanking: async () => {
         try {
             await loadData(); // Carga los CSV primero
@@ -55,6 +61,17 @@ export const useDashboardStore = create<DashboardState>((set) => ({
             set({ rankingEstaciones: data });
         } finally {
             set({ isLoadingEstaciones: false });
+        }
+    },
+    fetchTopCombustibles: async () => {
+        set({ isLoadingCombustibles: true });
+        try {
+            const data = await getTopEstacionesCombustibles(3);
+            set({ rankingCombustibles: data });
+        } catch (error) {
+            console.error('Error fetchTopCombustibles:', error);
+        } finally {
+            set({ isLoadingCombustibles: false });
         }
     },
 }));

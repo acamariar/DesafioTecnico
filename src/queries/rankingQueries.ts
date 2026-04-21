@@ -97,3 +97,42 @@ export const getTopEstacionesFacturacion = async (limit: number = 3) => {
     .slice(0, limit);
 };
 
+export const getTopEstacionesCombustibles = async (limit: number = 3) => {
+  // Identificar combustibles dinámicamente desde articulos
+  const combustiblesIds = articulos
+    .filter(a => {
+      const desc = a.Descripcion.toUpperCase();
+      // incluir solo aquellos que contienen NAFTA o DIESEL pero no GNC
+      return (desc.includes('NAFTA') || desc.includes('DIESEL')) && !desc.includes('GNC');
+    })
+    .map(a => a.ArtCodigo);
+
+  const precioMap = new Map(precios.map(p => [p.ArtCodigo, Math.abs(parseFloat(p['Precio Unit. Prom.'])) || 0]));
+
+  const estacionMap = new Map(estaciones.map(e => {
+    const [id] = e.Estacion.split(' - ');
+    const idNumerico = parseInt(id.trim());
+    return [idNumerico, e.Estacion];
+  }));
+
+  const stats: Record<number, number> = {};
+
+  ventas.forEach((v) => {
+    // Solo procesar si es combustible
+    if (!combustiblesIds.includes(v.ArtCodigo)) return;
+
+    const precio = precioMap.get(v.ArtCodigo) || 0;
+    const facturacion = parseInt(v.Unidades2) * precio;
+    const codigoEstacion = parseInt(v.Codigo);
+
+    stats[codigoEstacion] = (stats[codigoEstacion] || 0) + facturacion;
+  });
+
+  return Object.entries(stats)
+    .map(([codigo, total]) => ({
+      nombre: estacionMap.get(Number(codigo)) || "Desconocida",
+      facturacion: total
+    }))
+    .sort((a, b) => b.facturacion - a.facturacion)
+    .slice(0, limit);
+};
