@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from 'react';
+import { useEffect } from 'react';
 // Asegúrate de instalar estas librerías en tu terminal:
 // npm install recharts lucide-react
 import {
@@ -11,7 +11,7 @@ import {
   Activity
 } from 'lucide-react';
 import { useDashboardStore } from './store/useDashboardStore';
-import { getDB, loadCSVtoSQLite } from './service/db';
+
 
 /**
  * CONFIGURACIÓN TÉCNICA
@@ -59,13 +59,17 @@ const ESTACIONES = [
 
 const App = () => {
 
+  const { rankingEstaciones, fetchEstaciones, isLoadingEstaciones } = useDashboardStore();
+  const { rankingFacturacion, isLoadingFacturacion, fetchFacturacion } = useDashboardStore();
   const rankingProductos = useDashboardStore((state) => state.rankingProductos);
   const fetchRanking = useDashboardStore((state) => state.fetchRanking);
   const isLoading = useDashboardStore((state) => state.isLoading);
   useEffect(() => {
     fetchRanking();
+    fetchFacturacion();
+    fetchEstaciones();
 
-  }, [fetchRanking]);
+  }, [fetchRanking, fetchFacturacion, fetchEstaciones]);
 
 
 
@@ -112,8 +116,34 @@ const App = () => {
               </h3>
               {isLoading && <div className="text-xs text-cyan-400">Cargando...</div>}
             </div>
-            <div className="space-y-4">
+            <div className="space-y-4 ">
               {rankingProductos.map((item, i) => (
+                <div key={i} className="relative flex items-center justify-between p-5 rounded-2xl bg-white/2 border border-white/5 hover:bg-white/5 transition-all overflow-hidden group">
+                  <div className="flex items-center gap-4">
+                    <span className="text-3xl font-black text-white/5 group-hover:text-cyan-500/20 transition-colors">
+                      0{i + 1}
+                    </span>
+
+                    <span className="text-sm font-bold text-slate-300 group-hover:text-white transition-colors">
+                      {item.descripcion}</span>
+                  </div>
+                  <div className='flex flex-col items-center '>
+                    <span>Total Unidades</span>
+                    <span className="font-mono text-cyan-400 font-black">{item.totalUnidades.toLocaleString()}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+          <section className="lg:col-span-4 bg-white/3 border border-white/10 backdrop-blur-md rounded-[2.5rem] p-8">
+            <div className="flex items-center justify-between mb-10">
+              <h3 className="text-xl font-bold flex items-center gap-3 italic text-white">
+                <Package className="text-cyan-400" /> RANKING FACTURACIÓN
+              </h3>
+              {isLoadingFacturacion && <div className="text-xs text-cyan-400">Cargando...</div>}
+            </div>
+            <div className="space-y-4">
+              {rankingFacturacion.map((item, i) => (
                 <div key={i} className="relative flex items-center justify-between p-5 rounded-2xl bg-white/2 border border-white/5 hover:bg-white/5 transition-all overflow-hidden group">
                   <div className="flex items-center gap-4">
                     <span className="text-3xl font-black text-white/5 group-hover:text-cyan-500/20 transition-colors">
@@ -122,37 +152,46 @@ const App = () => {
                     <span className="text-sm font-bold text-slate-300 group-hover:text-white transition-colors">
                       {item.descripcion}</span>
                   </div>
-                  <span className="font-mono text-cyan-400 font-black">{item.totalUnidades.toLocaleString()}</span>
+                  <div className='flex flex-col items-center '>
+
+
+                    <span>Total Facturado</span>
+                    <span className="font-mono text-cyan-400 font-black">${item.facturacion.toLocaleString()}</span>
+                  </div>
                 </div>
               ))}
             </div>
           </section>
 
           {/* GRÁFICOS DE PARTICIPACIÓN */}
-          {/* <section className="lg:col-span-8 grid grid-cols-1 md:grid-cols-2 gap-6">
-            <GlassCard title="Participación Artículos" subtitle="Distribución sobre facturación">
+          <section className="lg:col-span-8 grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/*   <GlassCard title="Participación Artículos" subtitle="Distribución sobre facturación">
               <PieChartContainer data={data.rankingFacturacion} />
             </GlassCard>
 
             <GlassCard title="Participación Estaciones" subtitle="Desempeño por punto de venta">
               <PieChartContainer data={data.estacionesFact} />
-            </GlassCard>
+            </GlassCard>*/}
 
             <section className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
               <TopListCard
                 title="Top 3 Estaciones"
                 subtitle="Mayor facturación total"
-                data={data.estacionesFact}
+                data={rankingEstaciones.map(est => ({
+                  name: est.nombre,
+                  value: est.facturacion
+                }))}
                 variant="cyan"
               />
-              <TopListCard
-                title="Líderes Combustibles"
-                subtitle="Exclusivo Combustibles (Sin GNC)"
-                data={data.estacionesComb}
-                variant="orange"
-              />
+              {/* <TopListCard
+              title="Líderes Combustibles"
+              subtitle="Exclusivo Combustibles (Sin GNC)"
+              data={ }
+              variant="orange"
+            /> */}
             </section>
-          </section> */}
+          </section>
+
         </div>
       </main>
     </div>
@@ -212,9 +251,7 @@ const TopListCard = ({ title, subtitle, data, variant }) => {
           <h3 className="text-md font-bold text-white">{title}</h3>
           <p className="text-[10px] text-slate-500 uppercase font-black tracking-wider">{subtitle}</p>
         </div>
-        <div className={`p-3 rounded-2xl ${isCyan ? 'bg-cyan-500/10 text-cyan-400' : 'bg-orange-500/10 text-orange-400'}`}>
-          {isCyan ? <ArrowUpRight size={18} /> : <Fuel size={18} />}
-        </div>
+
       </div>
       <div className="space-y-4">
         {data.map((item, i) => (

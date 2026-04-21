@@ -14,3 +14,7 @@ export type RankingProducto = {
     descripcion: string;
     totalUnidades: number;
 }
+export type RankingFacturacion = {
+    descripcion: string;
+    facturacion: number;
+}

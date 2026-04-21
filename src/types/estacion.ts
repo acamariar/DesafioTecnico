@@ -6,3 +6,7 @@ export type estacion = {
 export type RawEstacion = {
     Estacion: string;
 }
+export type rankingEstacionFacturacion = {
+    nombre: string;
+    facturacion: number;
+}

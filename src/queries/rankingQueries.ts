@@ -1,17 +1,23 @@
-import type { RankingProducto, RawArticulo, RawVenta } from "../types";
+import type { RankingProducto, RawArticulo, RawEstacion, RawPrecio, RawVenta } from "../types";
 
 let articulos: RawArticulo[] = [];
 let ventas: RawVenta[] = [];
+let precios: RawPrecio[] = [];
+let estaciones: RawEstacion[] = [];
 
 export const loadData = async () => {
-  const [artRes, ventasRes] = await Promise.all([
+  const [artRes, ventasRes, preciosRes, estacionesRes] = await Promise.all([
     fetch('/Articulos.csv').then(r => r.text()),
-    fetch('/Unidades Vendidas.csv').then(r => r.text())
+    fetch('/Unidades Vendidas.csv').then(r => r.text()),
+    fetch('/Precios.csv').then(r => r.text()),
+    fetch('/Estaciones.csv').then(r => r.text())
   ]);
 
   const { parseCSV } = await import('../utils/csvParser');
   articulos = parseCSV(artRes) as RawArticulo[];
   ventas = parseCSV(ventasRes) as RawVenta[];
+  precios = parseCSV(preciosRes) as RawPrecio[];
+  estaciones = parseCSV(estacionesRes) as RawEstacion[];
 
 };
 
@@ -36,3 +42,58 @@ export const getRankingProductos = async (limit: number = 10): Promise<RankingPr
       totalUnidades: item.total
     }));
 };
+export const getRankingFacturacion = async (limit: number = 10) => {
+  const grouped: { [key: string]: { desc: string; facturacion: number } } = {};
+
+  ventas.forEach((venta: RawVenta) => {
+    const articulo = articulos.find((a) => a.ArtCodigo === venta.ArtCodigo);
+    const precio = precios.find((p) => p.ArtCodigo === venta.ArtCodigo);
+
+    const desc = articulo?.Descripcion || 'Desconocido';
+    const precioNum = Math.abs(parseFloat(precio?.['Precio Unit. Prom.'] || '0')); // Valor absoluto
+    const unidades = parseInt(venta.Unidades2) || 0;
+    const facturacion = unidades * precioNum;
+
+    if (!grouped[desc]) {
+      grouped[desc] = { desc, facturacion: 0 };
+    }
+    grouped[desc].facturacion += facturacion;
+  });
+
+  return Object.values(grouped)
+    .sort((a, b) => b.facturacion - a.facturacion)
+    .slice(0, limit)
+    .map(item => ({
+      descripcion: item.desc,
+      facturacion: item.facturacion
+    }));
+};
+
+export const getTopEstacionesFacturacion = async (limit: number = 3) => {
+  const precioMap = new Map(precios.map(p => [p.ArtCodigo, Math.abs(parseFloat(p['Precio Unit. Prom.'])) || 0]));
+
+  const estacionMap = new Map(estaciones.map(e => {
+    const [id] = e.Estacion.split(' - ');
+    const idNumerico = parseInt(id.trim());
+    return [idNumerico, e.Estacion];
+  }));
+
+  const stats: Record<number, number> = {};
+
+  ventas.forEach((v) => {
+    const precio = precioMap.get(v.ArtCodigo) || 0;
+    const facturacion = parseInt(v.Unidades2) * precio;
+    const codigoEstacion = parseInt(v.Codigo);
+
+    stats[codigoEstacion] = (stats[codigoEstacion] || 0) + facturacion;
+  });
+
+  return Object.entries(stats)
+    .map(([codigo, total]) => ({
+      nombre: estacionMap.get(Number(codigo)) || "Desconocida",
+      facturacion: total
+    }))
+    .sort((a, b) => b.facturacion - a.facturacion)
+    .slice(0, limit);
+};
+
