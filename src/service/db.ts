@@ -1,41 +1,71 @@
-import * as duckdb from '@duckdb/duckdb-wasm';
+import initSqlJs, { type Database } from 'sql.js';
 
-let dbInstance: duckdb.AsyncDuckDB | null = null;
+let dbInstance: Database | null = null;
 
-export const getDB = async () => {
+export const getDB = async (): Promise<Database> => {
     if (dbInstance) return dbInstance;
 
-    const bundle = await duckdb.selectBundle({
-        mvp: { mainModule: '/duckdb-mvp.wasm', mainWorker: '/duckdb-browser-mvp.worker.js' }
-    });
+    try {
+        const SQL = await initSqlJs({
+            locateFile: (file: string) => {
+                // Retorna la ruta correcta del archivo WASM
+                if (file.endsWith('.wasm')) {
+                    return `https://sql.js.org/dist/${file}`;
+                }
+                return file;
+            }
+        });
 
-    const worker = new Worker(bundle.mainWorker!);
-    const logger = new duckdb.ConsoleLogger();
-    const db = new duckdb.AsyncDuckDB(logger, worker);
-    await db.instantiate(bundle.mainModule);
-
-    dbInstance = db;
-    return dbInstance;
+        dbInstance = new SQL.Database();
+        console.log('✅ SQL.js inicializado');
+        return dbInstance;
+    } catch (error) {
+        console.error('❌ Error inicializando SQL.js:', error);
+        throw error;
+    }
 };
 
-
-export const loadDataToDuckDB = async (
-    db: duckdb.AsyncDuckDB,
+export const loadCSVtoSQLite = async (
+    db: Database,
     tableName: string,
-    url: string
+    csvUrl: string
 ) => {
+    try {
+        const response = await fetch(csvUrl);
+        const csv = await response.text();
 
-    await db.registerFileURL(
-        tableName,
-        url,
-        duckdb.DuckDBDataProtocol.HTTP,
-        false
-    );
-    const conn = await db.connect();
-    await conn.query(`
-    CREATE TABLE ${tableName} AS 
-    SELECT * FROM read_csv_auto('${tableName}')
-  `);
+        const lines = csv.trim().split('\n');
+        const headers = lines[0].split(',');
 
-    await conn.close();
+        const columnDef = headers.map(h => `${h.trim()} TEXT`).join(', ');
+        db.run(`CREATE TABLE IF NOT EXISTS ${tableName} (${columnDef})`);
+
+        for (let i = 1; i < lines.length; i++) {
+            const values = lines[i].split(',').map(v => `'${v.trim()}'`).join(', ');
+            db.run(`INSERT INTO ${tableName} VALUES (${values})`);
+        }
+
+        console.log(`✅ ${tableName} cargado`);
+    } catch (error) {
+        console.error(`❌ Error ${tableName}:`, error);
+        throw error;
+    }
+};
+
+export const queryDB = (db: Database, sql: string) => {
+    try {
+        const stmt = db.prepare(sql);
+        const result = [];
+
+        while (stmt.step()) {
+            const row = stmt.getAsObject();
+            result.push(row);
+        }
+
+        stmt.free();
+        return result;
+    } catch (error) {
+        console.error('❌ Error query:', error);
+        return [];
+    }
 };

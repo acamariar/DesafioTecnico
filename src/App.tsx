@@ -11,6 +11,7 @@ import {
   Activity
 } from 'lucide-react';
 import { useDashboardStore } from './store/useDashboardStore';
+import { getDB, loadCSVtoSQLite } from './service/db';
 
 /**
  * CONFIGURACIÓN TÉCNICA
@@ -61,55 +62,16 @@ const App = () => {
   const rankingProductos = useDashboardStore((state) => state.rankingProductos);
   const fetchRanking = useDashboardStore((state) => state.fetchRanking);
   const isLoading = useDashboardStore((state) => state.isLoading);
-
   useEffect(() => {
     fetchRanking();
+
   }, [fetchRanking]);
 
 
 
-  const data = useMemo(() => {
 
 
 
-    const fullData = VENTAS_RAW.map(v => {
-      const art = ARTICULOS.find(a => a.ArtCodigo === v.ArtCodigo);
-      const prc = PRECIOS.find(p => p.ArtCodigo === v.ArtCodigo);
-      const est = ESTACIONES.find(e => e.Codigo === v.Codigo);
-      const totalFact = v.Unidades2 * (prc?.Precio || 0);
-      const isCombustible = COMBUSTIBLES_IDS.includes(v.ArtCodigo);
-
-      return {
-        rankingUnidades: rankingProductos.map(item => ({
-          name: item.descripcion,
-          value: item.totalUnidades
-        })),
-        ...v,
-        nombreArt: art?.Descripcion || 'Desconocido',
-        nombreEst: est?.Nombre || 'Estación S/N',
-        facturacion: totalFact,
-        isCombustible
-      };
-    }, [rankingProductos]);
-
-    const aggregate = (arr, key, valKey) => {
-      const map = {};
-      arr.forEach(d => {
-        map[d[key]] = (map[d[key]] || 0) + d[valKey];
-      });
-      return Object.entries(map)
-        .map(([name, value]) => ({ name, value }))
-        .sort((a, b) => b.value - a.value);
-    };
-
-    return {
-      rankingUnidades: aggregate(fullData, 'nombreArt', 'Unidades2'),
-      rankingFacturacion: aggregate(fullData, 'nombreArt', 'facturacion'),
-      estacionesFact: aggregate(fullData, 'nombreEst', 'facturacion').slice(0, 3),
-      estacionesComb: aggregate(fullData.filter(d => d.isCombustible), 'nombreEst', 'facturacion').slice(0, 3),
-      totalGlobal: fullData.reduce((acc, curr) => acc + curr.facturacion, 0)
-    };
-  }, []);
 
   return (
     <div className="min-h-screen bg-[#0a0c10] text-slate-200 font-sans overflow-x-hidden selection:bg-cyan-500/30 p-4 md:p-8">
@@ -132,11 +94,11 @@ const App = () => {
               Dashboard de Ventas
             </h1>
           </div>
-          <div className="bg-white/5 border border-white/10 backdrop-blur-md p-6 rounded-3xl flex gap-10">
+          {/* <div className="bg-white/5 border border-white/10 backdrop-blur-md p-6 rounded-3xl flex gap-10">
             <QuickStat label="Facturación Total" value={`$${(data.totalGlobal / 1000000).toFixed(2)}M`} />
             <div className="w-px h-10 bg-white/10 my-auto" />
             <QuickStat label="Variación Mensual" value="+12.4%" positive />
-          </div>
+          </div> */}
         </div>
 
         {/* DISEÑO BENTO GRID */}
@@ -148,22 +110,26 @@ const App = () => {
               <h3 className="text-xl font-bold flex items-center gap-3 italic text-white">
                 <Package className="text-cyan-400" /> RANKING UNIDADES
               </h3>
+              {isLoading && <div className="text-xs text-cyan-400">Cargando...</div>}
             </div>
             <div className="space-y-4">
-              {data.rankingUnidades.map((item, i) => (
+              {rankingProductos.map((item, i) => (
                 <div key={i} className="relative flex items-center justify-between p-5 rounded-2xl bg-white/2 border border-white/5 hover:bg-white/5 transition-all overflow-hidden group">
                   <div className="flex items-center gap-4">
-                    <span className="text-3xl font-black text-white/5 group-hover:text-cyan-500/20 transition-colors">0{i + 1}</span>
-                    <span className="text-sm font-bold text-slate-300 group-hover:text-white transition-colors">{item.name}</span>
+                    <span className="text-3xl font-black text-white/5 group-hover:text-cyan-500/20 transition-colors">
+                      0{i + 1}
+                    </span>
+                    <span className="text-sm font-bold text-slate-300 group-hover:text-white transition-colors">
+                      {item.descripcion}</span>
                   </div>
-                  <span className="font-mono text-cyan-400 font-black">{item.value.toLocaleString()}</span>
+                  <span className="font-mono text-cyan-400 font-black">{item.totalUnidades.toLocaleString()}</span>
                 </div>
               ))}
             </div>
           </section>
 
           {/* GRÁFICOS DE PARTICIPACIÓN */}
-          <section className="lg:col-span-8 grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* <section className="lg:col-span-8 grid grid-cols-1 md:grid-cols-2 gap-6">
             <GlassCard title="Participación Artículos" subtitle="Distribución sobre facturación">
               <PieChartContainer data={data.rankingFacturacion} />
             </GlassCard>
@@ -186,7 +152,7 @@ const App = () => {
                 variant="orange"
               />
             </section>
-          </section>
+          </section> */}
         </div>
       </main>
     </div>

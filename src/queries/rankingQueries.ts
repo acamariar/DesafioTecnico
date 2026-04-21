@@ -1,28 +1,38 @@
-import { getDB } from "../service/db";
-import type { RankingProducto } from "../types";
+import type { RankingProducto, RawArticulo, RawVenta } from "../types";
 
+let articulos: RawArticulo[] = [];
+let ventas: RawVenta[] = [];
+
+export const loadData = async () => {
+  const [artRes, ventasRes] = await Promise.all([
+    fetch('/Articulos.csv').then(r => r.text()),
+    fetch('/Unidades Vendidas.csv').then(r => r.text())
+  ]);
+
+  const { parseCSV } = await import('../utils/csvParser');
+  articulos = parseCSV(artRes) as RawArticulo[];
+  ventas = parseCSV(ventasRes) as RawVenta[];
+
+};
 
 export const getRankingProductos = async (limit: number = 10): Promise<RankingProducto[]> => {
-    const db = await getDB();
-    const conn = await db.connect();
+  const grouped: { [key: string]: { desc: string; total: number } } = {};
 
-    // SQL: Unimos Ventas con Articulos, agrupamos por descripción y sumamos
-    const result = await conn.query(`
-    SELECT 
-      a.Descripcion as descripcion,
-      SUM(CAST(v.Unidades2 AS INTEGER)) as totalUnidades
-    FROM Venta v
-    JOIN Articulo a ON v.ArtCodigo = a.ArtCodigo
-    GROUP BY a.Descripcion
-    ORDER BY totalUnidades DESC
-    LIMIT ${limit}
-  `);
+  ventas.forEach((venta: RawVenta) => {
+    const articulo = articulos.find((a: RawArticulo) => a.ArtCodigo === venta.ArtCodigo);
+    const desc = articulo?.Descripcion || 'Desconocido';
 
-    await conn.close();
+    if (!grouped[desc]) {
+      grouped[desc] = { desc, total: 0 };
+    }
+    grouped[desc].total += parseInt(venta.Unidades2) || 0;
+  });
 
-    // Convertimos el resultado a nuestro tipo estricto
-    return result.toArray().map((row) => ({
-        descripcion: row.descripcion as string,
-        totalUnidades: Number(row.totalUnidades)
+  return Object.values(grouped)
+    .sort((a, b) => b.total - a.total)
+    .slice(0, limit)
+    .map(item => ({
+      descripcion: item.desc,
+      totalUnidades: item.total
     }));
 };
