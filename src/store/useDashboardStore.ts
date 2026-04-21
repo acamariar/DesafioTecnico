@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import type { rankingEstacionFacturacion, RankingFacturacion, RankingProducto } from '../types';
-import { getRankingFacturacion, getRankingProductos, getTopEstacionesCombustibles, getTopEstacionesFacturacion, loadData } from '../queries/rankingQueries';
+import { getParticipacionArticulos, getRankingFacturacion, getRankingProductos, getTopEstacionesCombustibles, getTopEstacionesFacturacion, loadData } from '../queries/rankingQueries';
 
 interface DashboardState {
     isLoading: boolean;
@@ -8,14 +8,17 @@ interface DashboardState {
     isLoadingFacturacion: boolean;
     isLoadingEstaciones: boolean;
     isLoadingCombustibles: boolean;
+    isLoadingParticipacion: boolean;
     rankingProductos: RankingProducto[];
     rankingFacturacion: RankingFacturacion[];
     rankingEstaciones: rankingEstacionFacturacion[];
     rankingCombustibles: rankingEstacionFacturacion[];
+    rankingParticipacion: { name: string; value: number }[];
     fetchRanking: () => Promise<void>;
     fetchFacturacion: () => Promise<void>;
     fetchEstaciones: () => Promise<void>;
     fetchTopCombustibles: () => Promise<void>;
+    fetchRankingParticipacion: () => Promise<void>;
 }
 
 export const useDashboardStore = create<DashboardState>((set) => ({
@@ -24,10 +27,12 @@ export const useDashboardStore = create<DashboardState>((set) => ({
     isLoadingFacturacion: false,
     isLoadingEstaciones: false,
     isLoadingCombustibles: false,
+    isLoadingParticipacion: false,
     rankingProductos: [],
     rankingFacturacion: [],
     rankingEstaciones: [],
     rankingCombustibles: [],
+    rankingParticipacion: [],
 
     fetchRanking: async () => {
         try {
@@ -66,6 +71,7 @@ export const useDashboardStore = create<DashboardState>((set) => ({
     fetchTopCombustibles: async () => {
         set({ isLoadingCombustibles: true });
         try {
+            await loadData();
             const data = await getTopEstacionesCombustibles(3);
             set({ rankingCombustibles: data });
         } catch (error) {
@@ -74,4 +80,18 @@ export const useDashboardStore = create<DashboardState>((set) => ({
             set({ isLoadingCombustibles: false });
         }
     },
+
+    fetchRankingParticipacion: async () => {
+        try {
+            await loadData();
+            set({ isLoadingParticipacion: true });
+            const data = await getParticipacionArticulos();
+            set({ rankingParticipacion: data });
+
+        } catch (error) {
+            console.error('Error fetchRankingParticipacion:', error);
+        } finally {
+            set({ isLoadingParticipacion: false });
+        }
+    }
 }));
