@@ -131,8 +131,8 @@ const App = () => {
                 variant="cyan"
               />
               <TopListCard
-                title="Top 3 Combustibles"
-                subtitle="Exclusivo Combustibles (Sin GNC)"
+                title="Top 3 Estaciones"
+                subtitle="Mayor Facturación de Combustibles (Sin GNC)"
                 data={rankingCombustibles.map(est => ({
                   name: est.nombre,
                   value: est.facturacion
@@ -144,8 +144,8 @@ const App = () => {
           </section>
           <div className='lg:col-span-12 col-span-1 w-full '>
             <section className="lg:col-span-2 col-span-1 bg-white/3 border border-white/10 backdrop-blur-md rounded-[2.5rem] p-10 ">
-              <h3 className='text-xl font-bold flex items-center 
-                gap-3 italic text-white text-center mb-10  justify-center w-full'>
+              <h3 className='text-3xl font-bold flex items-center 
+                gap-3 italic text-white text-center  justify-center w-full'>
                 Participación por Estaciones</h3>
               <ParticipacionEstacionesPie />
             </section>
