@@ -1,7 +1,7 @@
 # Dashboard de Ventas - Prueba Técnica
 
 ## Enfoque y Decisiones Técnicas
-Aunque la consigna original sugería el uso de SQL para el procesamiento de datos, opte por realizar todo el manejo, limpieza y análisis de datos directamente en JavaScript. Esto permite una mayor flexibilidad en el entorno web y elimina dependencias de motores SQL/WASM.
+Aunque la consigna original sugería el uso de SQL para el procesamiento de datos, opte por realizar todo el manejo, limpieza y análisis de datos directamente en JavaScript. Esto permite una mayor flexibilidad en el entorno web al trabajar sin backend.
 
 ## Estructura del Proyecto
 src/queries/: Contiene todas las funciones de análisis de datos, equivalentes a consultas SQL pero implementadas en JS.
