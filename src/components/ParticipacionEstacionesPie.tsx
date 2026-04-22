@@ -54,7 +54,7 @@ export const ParticipacionEstacionesPie = () => {
     }
 
     return (
-        <div className="w-full h-105">
+        <div className="w-full sm:h-200 md:h-180">
             <ResponsiveContainer>
                 <PieChart>
                     <Pie
@@ -62,10 +62,11 @@ export const ParticipacionEstacionesPie = () => {
                         dataKey="value"
                         nameKey="name"
                         cx="50%"
-                        cy="45%"
-                        innerRadius={70}
-                        outerRadius={120}
+                        cy="50%"
+                        innerRadius={60}
+                        outerRadius={230}
                         paddingAngle={2}
+                        label={(entry) => ` ${((entry.value / data.reduce((acc, d) => acc + d.value, 0)) * 100).toFixed(1)}%`}
 
                     >
                         {data.map((_, index) => (
