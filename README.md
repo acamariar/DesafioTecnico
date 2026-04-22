@@ -1,73 +1,45 @@
-# React + TypeScript + Vite
+# Dashboard de Ventas - Prueba Técnica
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+## Enfoque y Decisiones Técnicas
+Aunque la consigna original sugería el uso de SQL para el procesamiento de datos, opte por realizar todo el manejo, limpieza y análisis de datos directamente en JavaScript. Esto permite una mayor flexibilidad en el entorno web y elimina dependencias de motores SQL/WASM.
 
-Currently, two official plugins are available:
+## Estructura del Proyecto
+src/queries/: Contiene todas las funciones de análisis de datos, equivalentes a consultas SQL pero implementadas en JS.
+src/data/: Archivos CSV originales.
+src/components/: Componentes visuales del dashboard.
+src/store/: Manejo de estado global.
+src/utils/: Utilidades y mapeos.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
 
-## React Compiler
+## Procesamiento de Datos en JS vs SQL
+Las funciones en queries replican la lógica de consultas SQL, pero usando métodos de arrays y objetos en JS. Por ejemplo:
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+# SQL Tradicional	Función JS (queries)
 
-## Expanding the ESLint configuration
+SELECT articulo, SUM(unidades) FROM ventas GROUP BY articulo ORDER BY SUM(unidades) DESC LIMIT 10	*getRankingProductos()* agrupa, suma y ordena usando .reduce(), .sort() y .slice()
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+SELECT estacion, SUM(facturacion) FROM ventas GROUP BY estacion ORDER BY SUM(facturacion) DESC LIMIT 3	*getTopEstacionesFacturacion()* hace el mismo cálculo con métodos JS
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+SELECT articulo, SUM(facturacion) FROM ventas GROUP BY articulo	*getParticipacionArticulos()* calcula la participación de cada artículo
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+el análisis de datos es el mismo, solo cambia el lenguaje y las herramientas.
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+##  Limpieza y Normalización de Datos
+Antes de cualquier análisis, los datos de los CSV son limpiados y normalizados:
+
+Conversión de strings numéricos a números.
+Eliminación de filas vacías o corruptas.
+Unificación de nombres y formatos.
+Detección dinámica de artículos de tipo “combustible” para evitar hardcodeos.
+Esto asegura que los resultados sean precisos y que el dashboard sea robusto ante cambios en los datos de entrada.
+
+
+
+## visualización y UX
+React + Zustand para el manejo de estado y renderizado eficiente.
+Tailwind CSS para un diseño responsive y moderno.
+Recharts para gráficos interactivos.
+

@@ -45,11 +45,9 @@ export const ParticipacionCombustiblesPie = () => {
                         innerRadius={70}
                         outerRadius={120}
                         paddingAngle={6}
-                        label={({ percent }) => (
-                            <text fill="#E5E7EB" fontSize={14}>
-                                {(percent as number * 100).toFixed(0)}%
-                            </text>
-                        )}
+                        label={({ percent }) => ` ${(percent as number * 100).toFixed(1)}%`}
+
+
                     >
                         {data.map((_, index) => (
                             <Cell key={index} fill={COLORS[index % COLORS.length]} />

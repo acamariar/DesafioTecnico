@@ -95,6 +95,7 @@ export const ParticipacionEstacionesPie = () => {
 
                     <Legend
                         verticalAlign="bottom"
+                        className='sm:mt-4'
                         wrapperStyle={{
                             color: '#E5E7EB',
                             fontSize: '12px',
