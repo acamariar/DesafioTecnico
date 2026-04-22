@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import type { rankingEstacionFacturacion, RankingFacturacion, RankingProducto } from '../types';
-import { getParticipacionArticulos, getRankingFacturacion, getRankingProductos, getTopEstacionesCombustibles, getTopEstacionesFacturacion, loadData } from '../queries/rankingQueries';
+import { getParticipacionArticulos, getParticipacionEstaciones, getRankingFacturacion, getRankingProductos, getTopEstacionesCombustibles, getTopEstacionesFacturacion, loadData } from '../queries/rankingQueries';
 
 interface DashboardState {
     isLoading: boolean;
@@ -9,16 +9,19 @@ interface DashboardState {
     isLoadingEstaciones: boolean;
     isLoadingCombustibles: boolean;
     isLoadingParticipacion: boolean;
+    isLoadingParticipacionEstaciones: boolean;
     rankingProductos: RankingProducto[];
     rankingFacturacion: RankingFacturacion[];
     rankingEstaciones: rankingEstacionFacturacion[];
     rankingCombustibles: rankingEstacionFacturacion[];
     rankingParticipacion: { name: string; value: number }[];
+    rankingParticipacionEstaciones: { name: string; value: number }[];
     fetchRanking: () => Promise<void>;
     fetchFacturacion: () => Promise<void>;
     fetchEstaciones: () => Promise<void>;
     fetchTopCombustibles: () => Promise<void>;
     fetchRankingParticipacion: () => Promise<void>;
+    fetchRankingParticipacionEstaciones: () => Promise<void>;
 }
 
 export const useDashboardStore = create<DashboardState>((set) => ({
@@ -28,11 +31,13 @@ export const useDashboardStore = create<DashboardState>((set) => ({
     isLoadingEstaciones: false,
     isLoadingCombustibles: false,
     isLoadingParticipacion: false,
+    isLoadingParticipacionEstaciones: false,
     rankingProductos: [],
     rankingFacturacion: [],
     rankingEstaciones: [],
     rankingCombustibles: [],
     rankingParticipacion: [],
+    rankingParticipacionEstaciones: [],
 
     fetchRanking: async () => {
         try {
@@ -93,5 +98,17 @@ export const useDashboardStore = create<DashboardState>((set) => ({
         } finally {
             set({ isLoadingParticipacion: false });
         }
-    }
+    },
+    fetchRankingParticipacionEstaciones: async () => {
+        try {
+            set({ isLoadingParticipacionEstaciones: true });
+            await loadData();
+            const data = await getParticipacionEstaciones();
+            set({ rankingParticipacionEstaciones: data });
+        } catch (error) {
+            console.error('Error fetchRankingParticipacionEstaciones:', error);
+        } finally {
+            set({ isLoadingParticipacionEstaciones: false });
+        }
+    },
 }));

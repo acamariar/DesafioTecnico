@@ -9,47 +9,64 @@ import {
 } from 'recharts';
 import { useDashboardStore } from '../store/useDashboardStore';
 
+
 const COLORS = [
-    '#22D3EE', // celeste principal
-    '#60A5FA', // azul
-    '#A78BFA', // violeta
-    '#F472B6', // rosado
+    '#22D3EE',
+    '#60A5FA',
+    '#A78BFA',
+    '#F472B6',
+    '#F59E0B',
+    '#34D399',
+    '#F87171',
+    '#C084FC',
+    '#38BDF8',
+    '#FB7185',
+    '#FBBF24',
+    '#6EE7B7',
+    '#F43F5E',
+    '#10B981'
+
 ];
 
-export const ParticipacionCombustiblesPie = () => {
-    const data = useDashboardStore((state) => state.rankingParticipacion);
-    const loading = useDashboardStore((state) => state.isLoadingParticipacion);
-    const fetchData = useDashboardStore((state) => state.fetchRankingParticipacion);
+export const ParticipacionEstacionesPie = () => {
+    const data = useDashboardStore((state) => state.rankingParticipacionEstaciones);
+    const loading = useDashboardStore((state) => state.isLoadingParticipacionEstaciones);
+    const fetchData = useDashboardStore((state) => state.fetchRankingParticipacionEstaciones);
 
     useEffect(() => {
         fetchData();
     }, [fetchData]);
 
     if (loading) {
-        return <div className="text-white">Cargando...</div>;
+        return (
+            <div className="flex h-95 items-center justify-center text-white">
+                Cargando...
+            </div>
+        );
+    }
+
+    if (!data || data.length === 0) {
+        return (
+            <div className="flex h-95 items-center justify-center text-white">
+                Sin datos
+            </div>
+        );
     }
 
     return (
-        <div className="w-lg h-95">
-
+        <div className="w-full h-105">
             <ResponsiveContainer>
-
                 <PieChart>
-
                     <Pie
                         data={data}
                         dataKey="value"
                         nameKey="name"
                         cx="50%"
-                        cy="50%"
+                        cy="45%"
                         innerRadius={70}
                         outerRadius={120}
-                        paddingAngle={6}
-                        label={({ percent }) => (
-                            <text fill="#E5E7EB" fontSize={14}>
-                                {(percent as number * 100).toFixed(0)}%
-                            </text>
-                        )}
+                        paddingAngle={2}
+
                     >
                         {data.map((_, index) => (
                             <Cell key={index} fill={COLORS[index % COLORS.length]} />
@@ -79,11 +96,10 @@ export const ParticipacionCombustiblesPie = () => {
                         verticalAlign="bottom"
                         wrapperStyle={{
                             color: '#E5E7EB',
-                            fontSize: '13px',
+                            fontSize: '12px',
                         }}
                     />
                 </PieChart>
-
             </ResponsiveContainer>
         </div>
     );

@@ -173,3 +173,38 @@ export const getParticipacionArticulos = async () => {
       value: item.facturacion,
     }));
 };
+
+export const getParticipacionEstaciones = async () => {
+  const precioMap = new Map(
+    precios.map((p) => [
+      p.ArtCodigo,
+      Math.abs(parseFloat(p['Precio Unit. Prom.'])) || 0,
+    ])
+  );
+
+  const estacionMap = new Map(
+    estaciones.map((e) => {
+      const [id] = e.Estacion.split(' - ');
+      const idNumerico = parseInt(id.trim());
+      return [idNumerico, e.Estacion];
+    })
+  );
+
+  const grouped: Record<number, number> = {};
+
+  ventas.forEach((venta: RawVenta) => {
+    const precio = precioMap.get(venta.ArtCodigo) || 0;
+    const unidades = parseInt(venta.Unidades2) || 0;
+    const facturacion = unidades * precio;
+    const codigoEstacion = parseInt(venta.Codigo);
+
+    grouped[codigoEstacion] = (grouped[codigoEstacion] || 0) + facturacion;
+  });
+
+  return Object.entries(grouped)
+    .map(([codigo, total]) => ({
+      name: estacionMap.get(Number(codigo)) || 'Desconocida',
+      value: total,
+    }))
+    .sort((a, b) => b.value - a.value);
+};

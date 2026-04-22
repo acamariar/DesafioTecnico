@@ -4,6 +4,7 @@ import {
 } from 'lucide-react';
 import { useDashboardStore } from './store/useDashboardStore';
 import { ParticipacionCombustiblesPie } from './components/ParticipacionArticulosBarChart';
+import { ParticipacionEstacionesPie } from './components/ParticipacionEstacionesPie';
 
 const App = () => {
 
@@ -35,7 +36,7 @@ const App = () => {
 
 
 
-      <main className="relative z-10 pb-20 max-w-400 mx-auto">
+      <main className="relative z-10 pb-20 max-w-7xl mx-auto">
         {/* SECCIÓN DE ENCABEZADO */}
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-6">
           <div>
@@ -53,7 +54,7 @@ const App = () => {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
 
           {/* RANKING UNIDADES */}
-          <section className="lg:col-span-4 bg-white/3 border border-white/10 backdrop-blur-md rounded-[2.5rem] p-8">
+          <section className="lg:col-span-6 bg-white/3 border border-white/10 backdrop-blur-md rounded-[2.5rem] p-8">
             <div className="flex items-center justify-between mb-10">
               <h3 className="text-xl font-bold flex items-center gap-3 italic text-white">
                 <Package className="text-cyan-400" /> RANKING UNIDADES
@@ -79,7 +80,7 @@ const App = () => {
               ))}
             </div>
           </section>
-          <section className="lg:col-span-4 bg-white/3 border border-white/10 backdrop-blur-md rounded-[2.5rem] p-8">
+          <section className="lg:col-span-6 bg-white/3 border border-white/10 backdrop-blur-md rounded-[2.5rem] p-8">
             <div className="flex items-center justify-between mb-10">
               <h3 className="text-xl font-bold flex items-center gap-3 italic text-white">
                 <Package className="text-cyan-400" /> RANKING FACTURACIÓN
@@ -108,17 +109,18 @@ const App = () => {
           </section>
 
           {/* GRÁFICOS DE PARTICIPACIÓN */}
-          <section className="lg:col-span-8 grid grid-cols-2 md:grid-cols-1 gap-6">
-            <section className="lg:col-span-2 bg-white/3 border border-white/10 backdrop-blur-md rounded-[2.5rem] p-4">
-              <ParticipacionCombustiblesPie />
-            </section>
+          <section className="lg:col-span-12 grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Columna izquierda: Gráficos */}
+            <div className="flex flex-col gap-6 ">
+              <section className="bg-white/3 border border-white/10 backdrop-blur-md rounded-[2.5rem]  p-10 h-full">
+                <h3 className='text-xl font-bold flex  gap-3 italic text-white text-center ml-32'>
+                  Participación por Artículos</h3>
+                <ParticipacionCombustiblesPie />
+              </section>
 
-
-            {/*   <GlassCard title="Participación Estaciones" subtitle="Desempeño por punto de venta">
-              <PieChartContainer data={data.estacionesFact} />
-            </GlassCard>*/}
-
-            <section className="md:col-span-2 grid grid-cols-1 md:grid-cols-1 gap-6">
+            </div>
+            {/* Columna derecha: Top 3 */}
+            <div className="flex flex-col gap-6">
               <TopListCard
                 title="Top 3 Estaciones"
                 subtitle="Mayor facturación total"
@@ -137,8 +139,17 @@ const App = () => {
                 }))}
                 variant="orange"
               />
-            </section>
+            </div>
+
           </section>
+          <div className='lg:col-span-12 col-span-1 w-full '>
+            <section className="lg:col-span-2 col-span-1 bg-white/3 border border-white/10 backdrop-blur-md rounded-[2.5rem] p-10 ">
+              <h3 className='text-xl font-bold flex items-center 
+                gap-3 italic text-white text-center mb-10  justify-center w-full'>
+                Participación por Estaciones</h3>
+              <ParticipacionEstacionesPie />
+            </section>
+          </div>
 
         </div>
       </main>
